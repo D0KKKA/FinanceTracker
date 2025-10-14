@@ -1,12 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { LocalStorage, type Settings } from "@/lib/storage"
+import { LocalStorage, type Settings, CURRENCIES, getCurrencySymbol } from "@/lib/storage"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -14,7 +15,7 @@ import { useRouter } from "next/navigation"
 export default function SettingsPage() {
   const router = useRouter()
   const [settings, setSettings] = useState<Settings>({
-    currency: "₽",
+    currency: "RUB",
     syncEnabled: false,
   })
   const [mounted, setMounted] = useState(false)
@@ -47,12 +48,18 @@ export default function SettingsPage() {
         <Card className="p-6 space-y-6 glow border-primary/20">
           <div className="space-y-2">
             <Label htmlFor="currency">Валюта</Label>
-            <Input
-              id="currency"
-              value={settings.currency}
-              onChange={(e) => setSettings({ ...settings, currency: e.target.value })}
-              placeholder="₽"
-            />
+            <Select value={settings.currency} onValueChange={(value) => setSettings({ ...settings, currency: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Выберите валюту" />
+              </SelectTrigger>
+              <SelectContent>
+                {CURRENCIES.map((currency) => (
+                  <SelectItem key={currency.code} value={currency.code}>
+                    {currency.symbol} {currency.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-4 pt-4 border-t border-border">

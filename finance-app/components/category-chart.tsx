@@ -1,7 +1,7 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import { LocalStorage, type Transaction } from "@/lib/storage"
+import { LocalStorage, type Transaction, getCurrencySymbol } from "@/lib/storage"
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts"
 
 interface CategoryChartProps {
@@ -64,7 +64,7 @@ export function CategoryChart({ transactions, type }: CategoryChartProps) {
             ))}
           </Pie>
           <Tooltip
-            formatter={(value: number) => `${value.toFixed(2)} ${settings.currency}`}
+            formatter={(value: number) => `${value.toFixed(2)} ${getCurrencySymbol(settings.currency)}`}
             contentStyle={{
               backgroundColor: "hsl(var(--card))",
               border: "1px solid hsl(var(--border))",
@@ -83,7 +83,7 @@ export function CategoryChart({ transactions, type }: CategoryChartProps) {
               <span>{item.name}</span>
             </div>
             <span className="font-mono font-semibold">
-              {item.value.toFixed(2)} {settings.currency}
+              {item.value.toFixed(2)} {getCurrencySymbol(settings.currency)}
             </span>
           </div>
         ))}

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { LocalStorage, type Transaction } from "@/lib/storage"
+import { LocalStorage, type Transaction, getCurrencySymbol } from "@/lib/storage"
 import { CategoryChart } from "@/components/category-chart"
 import { TrendChart } from "@/components/trend-chart"
 import { StatsCard } from "@/components/stats-card"
@@ -82,17 +82,17 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatsCard
             title="Общий доход"
-            value={`${income.toFixed(2)} ${settings.currency}`}
+            value={`${income.toFixed(2)} ${getCurrencySymbol(settings.currency)}`}
             icon={TrendingUp}
             trend={`${filteredTransactions.filter((t) => t.type === "income").length} транзакций`}
           />
           <StatsCard
             title="Общие расходы"
-            value={`${expenses.toFixed(2)} ${settings.currency}`}
+            value={`${expenses.toFixed(2)} ${getCurrencySymbol(settings.currency)}`}
             icon={TrendingDown}
             trend={`${filteredTransactions.filter((t) => t.type === "expense").length} транзакций`}
           />
-          <StatsCard title="Средний расход" value={`${avgExpense.toFixed(2)} ${settings.currency}`} icon={PieChart} />
+          <StatsCard title="Средний расход" value={`${avgExpense.toFixed(2)} ${getCurrencySymbol(settings.currency)}`} icon={PieChart} />
           <StatsCard
             title="Норма сбережений"
             value={`${savingsRate.toFixed(1)}%`}

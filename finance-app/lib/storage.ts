@@ -8,6 +8,28 @@ export interface Transaction {
   createdAt: string
 }
 
+export interface Currency {
+  code: string
+  symbol: string
+  name: string
+}
+
+export const CURRENCIES: Currency[] = [
+  { code: "RUB", symbol: "₽", name: "Российский рубль" },
+  { code: "KZT", symbol: "₸", name: "Казахстанский тенге" },
+  { code: "USD", symbol: "$", name: "Доллар США" }
+]
+
+export function getCurrencySymbol(currencyCode: string): string {
+  const currency = CURRENCIES.find(c => c.code === currencyCode)
+  return currency?.symbol || "₽"
+}
+
+export function getCurrencyName(currencyCode: string): string {
+  const currency = CURRENCIES.find(c => c.code === currencyCode)
+  return currency?.name || "Российский рубль"
+}
+
 export interface Category {
   id: string
   name: string
@@ -75,9 +97,9 @@ export class LocalStorage {
   }
 
   static getSettings(): Settings {
-    if (typeof window === "undefined") return { currency: "₽", syncEnabled: false }
+    if (typeof window === "undefined") return { currency: "RUB", syncEnabled: false }
     const data = localStorage.getItem(STORAGE_KEYS.SETTINGS)
-    return data ? JSON.parse(data) : { currency: "₽", syncEnabled: false }
+    return data ? JSON.parse(data) : { currency: "RUB", syncEnabled: false }
   }
 
   static saveSettings(settings: Settings): void {

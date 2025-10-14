@@ -1,7 +1,7 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import { LocalStorage, type Transaction } from "@/lib/storage"
+import { LocalStorage, type Transaction, getCurrencySymbol } from "@/lib/storage"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 
 interface TrendChartProps {
@@ -65,7 +65,7 @@ export function TrendChart({ transactions }: TrendChartProps) {
             tickFormatter={(value) => `${value}`}
           />
           <Tooltip
-            formatter={(value: number) => `${value.toFixed(2)} ${settings.currency}`}
+            formatter={(value: number) => `${value.toFixed(2)} ${getCurrencySymbol(settings.currency)}`}
             contentStyle={{
               backgroundColor: "hsl(var(--card))",
               border: "1px solid hsl(var(--border))",

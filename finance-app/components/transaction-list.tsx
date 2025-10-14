@@ -1,6 +1,6 @@
 "use client"
 
-import { LocalStorage, type Transaction } from "@/lib/storage"
+import { LocalStorage, type Transaction, getCurrencySymbol } from "@/lib/storage"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Trash2 } from "lucide-react"
@@ -26,7 +26,7 @@ export function TransactionList({ transactions, onDelete }: TransactionListProps
 
   const formatAmount = (amount: number, type: "income" | "expense") => {
     const sign = type === "income" ? "+" : "-"
-    return `${sign}${amount.toFixed(2)} ${settings.currency}`
+    return `${sign}${amount.toFixed(2)} ${getCurrencySymbol(settings.currency)}`
   }
 
   if (transactions.length === 0) {

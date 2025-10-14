@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { TransactionForm } from "@/components/transaction-form"
 import { TransactionList } from "@/components/transaction-list"
 import { StatsCard } from "@/components/stats-card"
-import { LocalStorage, type Transaction } from "@/lib/storage"
+import { LocalStorage, type Transaction, getCurrencySymbol } from "@/lib/storage"
 import { TrendingUp, TrendingDown, Wallet, Settings, BarChart3 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -57,12 +57,12 @@ export default function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <StatsCard
             title="Баланс"
-            value={`${balance.toFixed(2)} ${settings.currency}`}
+            value={`${balance.toFixed(2)} ${getCurrencySymbol(settings.currency)}`}
             icon={Wallet}
             className="glow"
           />
-          <StatsCard title="Доходы" value={`${income.toFixed(2)} ${settings.currency}`} icon={TrendingUp} />
-          <StatsCard title="Расходы" value={`${expenses.toFixed(2)} ${settings.currency}`} icon={TrendingDown} />
+          <StatsCard title="Доходы" value={`${income.toFixed(2)} ${getCurrencySymbol(settings.currency)}`} icon={TrendingUp} />
+          <StatsCard title="Расходы" value={`${expenses.toFixed(2)} ${getCurrencySymbol(settings.currency)}`} icon={TrendingDown} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
