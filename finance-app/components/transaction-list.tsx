@@ -1,32 +1,63 @@
 "use client"
 
-import { LocalStorage, type Transaction, getCurrencySymbol } from "@/lib/storage"
+import { useState } from "react"
+import { DEFAULT_CATEGORIES, type Transaction, getCurrencySymbol } from "@/lib/storage"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Trash2 } from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
+import { useToast } from "@/hooks/use-toast"
 
 interface TransactionListProps {
   transactions: Transaction[]
   onDelete: () => void
+  currency?: string
 }
 
-export function TransactionList({ transactions, onDelete }: TransactionListProps) {
-  const categories = LocalStorage.getCategories()
-  const settings = LocalStorage.getSettings()
+export function TransactionList({ transactions, onDelete, currency = "RUB" }: TransactionListProps) {
+  const { api } = useAuth()
+  const { toast } = useToast()
+  const [deleting, setDeleting] = useState<string | null>(null)
 
   const getCategoryIcon = (categoryName: string) => {
-    const category = categories.find((c) => c.name === categoryName)
+    const category = DEFAULT_CATEGORIES.find((c) => c.name === categoryName)
     return category?.icon || "💸"
   }
 
-  const handleDelete = (id: string) => {
-    LocalStorage.deleteTransaction(id)
-    onDelete()
+  const handleDelete = async (id: string) => {
+    setDeleting(id)
+
+    if (!api) {
+      toast({
+        title: "Ошибка",
+        description: "API не инициализирован",
+        variant: "destructive",
+      })
+      setDeleting(null)
+      return
+    }
+
+    try {
+      await api.deleteTransaction(id)
+      toast({
+        title: "Успешно",
+        description: "Транзакция удалена",
+      })
+      onDelete()
+    } catch (error: any) {
+      toast({
+        title: "Ошибка",
+        description: error.message || "Не удалось удалить транзакцию",
+        variant: "destructive",
+      })
+    } finally {
+      setDeleting(null)
+    }
   }
 
   const formatAmount = (amount: number, type: "income" | "expense") => {
     const sign = type === "income" ? "+" : "-"
-    return `${sign}${amount.toFixed(2)} ${getCurrencySymbol(settings.currency)}`
+    return `${sign}${amount.toFixed(2)} ${getCurrencySymbol(currency)}`
   }
 
   if (transactions.length === 0) {
@@ -68,6 +99,7 @@ export function TransactionList({ transactions, onDelete }: TransactionListProps
               variant="ghost"
               size="icon"
               onClick={() => handleDelete(transaction.id)}
+              disabled={deleting === transaction.id}
               className="text-muted-foreground hover:text-destructive"
             >
               <Trash2 className="h-4 w-4" />

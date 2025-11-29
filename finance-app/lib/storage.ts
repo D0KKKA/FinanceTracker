@@ -44,14 +44,8 @@ export interface Settings {
   syncEnabled: boolean
 }
 
-const STORAGE_KEYS = {
-  TRANSACTIONS: "finance_transactions",
-  CATEGORIES: "finance_categories",
-  SETTINGS: "finance_settings",
-}
-
-// Default categories
-const DEFAULT_CATEGORIES: Category[] = [
+// Default categories - used as reference only
+export const DEFAULT_CATEGORIES: Category[] = [
   { id: "1", name: "Зарплата", type: "income", icon: "💰", color: "chart-2" },
   { id: "2", name: "Фриланс", type: "income", icon: "💻", color: "chart-2" },
   { id: "3", name: "Инвестиции", type: "income", icon: "📈", color: "chart-2" },
@@ -62,47 +56,34 @@ const DEFAULT_CATEGORIES: Category[] = [
   { id: "8", name: "Образование", type: "expense", icon: "📚", color: "chart-3" },
 ]
 
+// LocalStorage is deprecated - use API through useAuth hook instead
 export class LocalStorage {
   static getTransactions(): Transaction[] {
-    if (typeof window === "undefined") return []
-    const data = localStorage.getItem(STORAGE_KEYS.TRANSACTIONS)
-    return data ? JSON.parse(data) : []
+    console.warn("LocalStorage.getTransactions() is deprecated. Use API through useAuth hook.")
+    return []
   }
 
   static saveTransaction(transaction: Omit<Transaction, "id" | "createdAt">): Transaction {
-    const transactions = this.getTransactions()
-    const newTransaction: Transaction = {
-      ...transaction,
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-    }
-    transactions.unshift(newTransaction)
-    localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(transactions))
-    return newTransaction
+    throw new Error("LocalStorage.saveTransaction() is deprecated. Use API through useAuth hook.")
   }
 
   static deleteTransaction(id: string): void {
-    const transactions = this.getTransactions().filter((t) => t.id !== id)
-    localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(transactions))
+    throw new Error("LocalStorage.deleteTransaction() is deprecated. Use API through useAuth hook.")
   }
 
   static getCategories(): Category[] {
-    if (typeof window === "undefined") return DEFAULT_CATEGORIES
-    const data = localStorage.getItem(STORAGE_KEYS.CATEGORIES)
-    return data ? JSON.parse(data) : DEFAULT_CATEGORIES
+    return DEFAULT_CATEGORIES
   }
 
   static saveCategories(categories: Category[]): void {
-    localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(categories))
+    throw new Error("LocalStorage.saveCategories() is deprecated. Use API through useAuth hook.")
   }
 
   static getSettings(): Settings {
-    if (typeof window === "undefined") return { currency: "RUB", syncEnabled: false }
-    const data = localStorage.getItem(STORAGE_KEYS.SETTINGS)
-    return data ? JSON.parse(data) : { currency: "RUB", syncEnabled: false }
+    return { currency: "RUB", syncEnabled: false }
   }
 
   static saveSettings(settings: Settings): void {
-    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings))
+    throw new Error("LocalStorage.saveSettings() is deprecated. Use API through useAuth hook.")
   }
 }

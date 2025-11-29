@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { LocalStorage, type Transaction, getCurrencySymbol } from "@/lib/storage"
+import { type Transaction, getCurrencySymbol } from "@/lib/storage"
 import { CategoryChart } from "@/components/category-chart"
 import { TrendChart } from "@/components/trend-chart"
 import { StatsCard } from "@/components/stats-card"
@@ -9,24 +9,45 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, TrendingUp, TrendingDown, PieChart, Calendar } from "lucide-react"
 import Link from "next/link"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useAuth } from "@/hooks/use-auth"
+import { useToast } from "@/hooks/use-toast"
 
 export default function AnalyticsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [period, setPeriod] = useState<"week" | "month" | "year" | "all">("month")
   const [mounted, setMounted] = useState(false)
+  const [currency, setCurrency] = useState("RUB")
+  const { api } = useAuth()
+  const { toast } = useToast()
 
   useEffect(() => {
     setMounted(true)
     loadTransactions()
-  }, [])
+  }, [api])
 
-  const loadTransactions = () => {
-    setTransactions(LocalStorage.getTransactions())
+  const loadTransactions = async () => {
+    if (!api) {
+      toast({
+        title: "Ошибка",
+        description: "API не инициализирован",
+        variant: "destructive",
+      })
+      return
+    }
+    try {
+      const data = await api.getTransactions()
+      setTransactions(data)
+    } catch (error: any) {
+      console.error("Failed to load transactions:", error)
+      toast({
+        title: "Ошибка",
+        description: error.message || "Не удалось загрузить транзакции",
+        variant: "destructive",
+      })
+    }
   }
 
   if (!mounted) return null
-
-  const settings = LocalStorage.getSettings()
 
   // Filter transactions by period
   const now = new Date()
@@ -82,17 +103,17 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatsCard
             title="Общий доход"
-            value={`${income.toFixed(2)} ${getCurrencySymbol(settings.currency)}`}
+            value={`${income.toFixed(2)} ${getCurrencySymbol(currency)}`}
             icon={TrendingUp}
             trend={`${filteredTransactions.filter((t) => t.type === "income").length} транзакций`}
           />
           <StatsCard
             title="Общие расходы"
-            value={`${expenses.toFixed(2)} ${getCurrencySymbol(settings.currency)}`}
+            value={`${expenses.toFixed(2)} ${getCurrencySymbol(currency)}`}
             icon={TrendingDown}
             trend={`${filteredTransactions.filter((t) => t.type === "expense").length} транзакций`}
           />
-          <StatsCard title="Средний расход" value={`${avgExpense.toFixed(2)} ${getCurrencySymbol(settings.currency)}`} icon={PieChart} />
+          <StatsCard title="Средний расход" value={`${avgExpense.toFixed(2)} ${getCurrencySymbol(currency)}`} icon={PieChart} />
           <StatsCard
             title="Норма сбережений"
             value={`${savingsRate.toFixed(1)}%`}

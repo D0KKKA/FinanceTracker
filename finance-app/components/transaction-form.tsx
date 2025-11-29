@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { LocalStorage } from "@/lib/storage"
+import { DEFAULT_CATEGORIES } from "@/lib/storage"
 import { Card } from "@/components/ui/card"
+import { useAuth } from "@/hooks/use-auth"
+import { useToast } from "@/hooks/use-toast"
 
 interface TransactionFormProps {
   onSuccess: () => void
@@ -20,26 +22,54 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
   const [category, setCategory] = useState("")
   const [description, setDescription] = useState("")
   const [date, setDate] = useState(new Date().toISOString().split("T")[0])
+  const [loading, setLoading] = useState(false)
+  const { api } = useAuth()
+  const { toast } = useToast()
 
-  const categories = LocalStorage.getCategories().filter((c) => c.type === type)
+  const categories = DEFAULT_CATEGORIES.filter((c) => c.type === type)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!amount || !category) return
 
-    LocalStorage.saveTransaction({
-      type,
-      amount: Number.parseFloat(amount),
-      category,
-      description,
-      date,
-    })
+    if (!api) {
+      toast({
+        title: "Ошибка",
+        description: "API не инициализирован",
+        variant: "destructive",
+      })
+      return
+    }
 
-    setAmount("")
-    setCategory("")
-    setDescription("")
-    setDate(new Date().toISOString().split("T")[0])
-    onSuccess()
+    setLoading(true)
+    try {
+      await api.createTransaction({
+        type,
+        amount: Number.parseFloat(amount),
+        category,
+        description,
+        date,
+      })
+
+      toast({
+        title: "Успешно",
+        description: "Транзакция добавлена",
+      })
+
+      setAmount("")
+      setCategory("")
+      setDescription("")
+      setDate(new Date().toISOString().split("T")[0])
+      onSuccess()
+    } catch (error: any) {
+      toast({
+        title: "Ошибка",
+        description: error.message || "Не удалось добавить транзакцию",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -112,8 +142,8 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
           <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
         </div>
 
-        <Button type="submit" className="w-full glow" size="lg">
-          Добавить транзакцию
+        <Button type="submit" className="w-full glow" size="lg" disabled={loading}>
+          {loading ? "Загрузка..." : "Добавить транзакцию"}
         </Button>
       </form>
     </Card>

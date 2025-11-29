@@ -1,12 +1,13 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import { LocalStorage, type Transaction, getCurrencySymbol } from "@/lib/storage"
+import { DEFAULT_CATEGORIES, type Transaction, getCurrencySymbol } from "@/lib/storage"
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts"
 
 interface CategoryChartProps {
   transactions: Transaction[]
   type: "income" | "expense"
+  currency?: string
 }
 
 const COLORS = [
@@ -17,9 +18,8 @@ const COLORS = [
   "hsl(var(--chart-5))",
 ]
 
-export function CategoryChart({ transactions, type }: CategoryChartProps) {
-  const categories = LocalStorage.getCategories().filter((c) => c.type === type)
-  const settings = LocalStorage.getSettings()
+export function CategoryChart({ transactions, type, currency = "RUB" }: CategoryChartProps) {
+  const categories = DEFAULT_CATEGORIES.filter((c) => c.type === type)
 
   const data = categories
     .map((category) => {
@@ -64,7 +64,7 @@ export function CategoryChart({ transactions, type }: CategoryChartProps) {
             ))}
           </Pie>
           <Tooltip
-            formatter={(value: number) => `${value.toFixed(2)} ${getCurrencySymbol(settings.currency)}`}
+            formatter={(value: number) => `${value.toFixed(2)} ${getCurrencySymbol(currency)}`}
             contentStyle={{
               backgroundColor: "hsl(var(--card))",
               border: "1px solid hsl(var(--border))",
@@ -83,7 +83,7 @@ export function CategoryChart({ transactions, type }: CategoryChartProps) {
               <span>{item.name}</span>
             </div>
             <span className="font-mono font-semibold">
-              {item.value.toFixed(2)} {getCurrencySymbol(settings.currency)}
+              {item.value.toFixed(2)} {getCurrencySymbol(currency)}
             </span>
           </div>
         ))}

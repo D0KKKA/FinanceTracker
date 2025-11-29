@@ -1,15 +1,15 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import { LocalStorage, type Transaction, getCurrencySymbol } from "@/lib/storage"
+import { type Transaction, getCurrencySymbol } from "@/lib/storage"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 
 interface TrendChartProps {
   transactions: Transaction[]
+  currency?: string
 }
 
-export function TrendChart({ transactions }: TrendChartProps) {
-  const settings = LocalStorage.getSettings()
+export function TrendChart({ transactions, currency = "RUB" }: TrendChartProps) {
 
   // Group transactions by month
   const monthlyData = transactions.reduce(
@@ -65,7 +65,7 @@ export function TrendChart({ transactions }: TrendChartProps) {
             tickFormatter={(value) => `${value}`}
           />
           <Tooltip
-            formatter={(value: number) => `${value.toFixed(2)} ${getCurrencySymbol(settings.currency)}`}
+            formatter={(value: number) => `${value.toFixed(2)} ${getCurrencySymbol(currency)}`}
             contentStyle={{
               backgroundColor: "hsl(var(--card))",
               border: "1px solid hsl(var(--border))",

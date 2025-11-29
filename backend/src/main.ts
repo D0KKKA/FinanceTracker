@@ -7,9 +7,10 @@ async function bootstrap() {
   
   // Включаем CORS для фронтенда
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3001'],
+    origin: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
   });
   
   // Включаем валидацию

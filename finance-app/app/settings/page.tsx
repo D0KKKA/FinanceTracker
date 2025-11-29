@@ -1,32 +1,27 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { LocalStorage, type Settings, CURRENCIES, getCurrencySymbol } from "@/lib/storage"
+import { CURRENCIES } from "@/lib/storage"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function SettingsPage() {
   const router = useRouter()
-  const [settings, setSettings] = useState<Settings>({
-    currency: "RUB",
-    syncEnabled: false,
-  })
+  const { user } = useAuth()
+  const [currency, setCurrency] = useState("RUB")
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
-    setSettings(LocalStorage.getSettings())
   }, [])
 
   const handleSave = () => {
-    LocalStorage.saveSettings(settings)
     router.push("/")
   }
 
@@ -48,50 +43,28 @@ export default function SettingsPage() {
         <Card className="p-6 space-y-6 glow border-primary/20">
           <div className="space-y-2">
             <Label htmlFor="currency">Валюта</Label>
-            <Select value={settings.currency} onValueChange={(value) => setSettings({ ...settings, currency: value })}>
+            <Select value={currency} onValueChange={setCurrency}>
               <SelectTrigger>
                 <SelectValue placeholder="Выберите валюту" />
               </SelectTrigger>
               <SelectContent>
-                {CURRENCIES.map((currency) => (
-                  <SelectItem key={currency.code} value={currency.code}>
-                    {currency.symbol} {currency.name}
+                {CURRENCIES.map((curr) => (
+                  <SelectItem key={curr.code} value={curr.code}>
+                    {curr.symbol} {curr.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          <div className="space-y-4 pt-4 border-t border-border">
-            <h3 className="text-lg font-semibold">Синхронизация с бэкендом</h3>
-
-            <div className="flex items-center justify-between">
-              <Label htmlFor="sync">Включить синхронизацию</Label>
-              <Switch
-                id="sync"
-                checked={settings.syncEnabled}
-                onCheckedChange={(checked) => setSettings({ ...settings, syncEnabled: checked })}
-              />
-            </div>
-
-            {settings.syncEnabled && (
-              <div className="space-y-2">
-                <Label htmlFor="backend">URL бэкенда</Label>
-                <Input
-                  id="backend"
-                  value={settings.backendUrl || ""}
-                  onChange={(e) => setSettings({ ...settings, backendUrl: e.target.value })}
-                  placeholder="https://api.example.com"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Укажите URL вашего бэкенд-сервера для синхронизации данных
-                </p>
-              </div>
-            )}
+          <div className="pt-4 border-t border-border">
+            <p className="text-sm text-muted-foreground">
+              Настройки синхронизируются с бэкендом автоматически. Все данные хранятся на сервере.
+            </p>
           </div>
 
           <Button onClick={handleSave} className="w-full glow" size="lg">
-            Сохранить настройки
+            Вернуться на главную
           </Button>
         </Card>
       </div>

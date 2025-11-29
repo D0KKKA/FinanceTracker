@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
+import { User } from './user.entity';
 
 @Entity('transactions')
 export class Transaction {
@@ -20,9 +21,15 @@ export class Transaction {
   @Column({ type: 'date' })
   date: string;
 
+  @Column({ type: 'uuid' })
+  userId: string;
+
   @CreateDateColumn()
   createdAt: string;
 
   @UpdateDateColumn()
   updatedAt: string;
+
+  @ManyToOne(() => User, (user) => user.transactions, { onDelete: 'CASCADE' })
+  user: User;
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Category } from '../entities/category.entity';
@@ -11,7 +11,7 @@ export class CategoriesService {
     private categoriesRepository: Repository<Category>,
   ) {}
 
-  async create(createCategoryDto: CreateCategoryDto): Promise<Category> {
+  async create(createCategoryDto: CreateCategoryDto & { userId: string }): Promise<Category> {
     const category = this.categoriesRepository.create(createCategoryDto);
     return await this.categoriesRepository.save(category);
   }
@@ -20,8 +20,24 @@ export class CategoriesService {
     return await this.categoriesRepository.find();
   }
 
+  async findAllByUser(userId: string): Promise<Category[]> {
+    return await this.categoriesRepository.find({ where: { userId } });
+  }
+
   async findOne(id: string): Promise<Category> {
     return await this.categoriesRepository.findOne({ where: { id } });
+  }
+
+  async findOneByUser(id: string, userId: string): Promise<Category> {
+    const category = await this.categoriesRepository.findOne({
+      where: { id, userId },
+    });
+
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+
+    return category;
   }
 
   async update(id: string, updateCategoryDto: UpdateCategoryDto): Promise<Category> {
@@ -29,11 +45,32 @@ export class CategoriesService {
     return await this.findOne(id);
   }
 
+  async updateByUser(id: string, updateCategoryDto: UpdateCategoryDto, userId: string): Promise<Category> {
+    const category = await this.findOneByUser(id, userId);
+
+    if (category.userId !== userId) {
+      throw new ForbiddenException('You can only update your own categories');
+    }
+
+    await this.categoriesRepository.update(id, updateCategoryDto);
+    return await this.findOneByUser(id, userId);
+  }
+
   async remove(id: string): Promise<void> {
     await this.categoriesRepository.delete(id);
   }
 
-  async seedDefaultCategories(): Promise<void> {
+  async removeByUser(id: string, userId: string): Promise<void> {
+    const category = await this.findOneByUser(id, userId);
+
+    if (category.userId !== userId) {
+      throw new ForbiddenException('You can only delete your own categories');
+    }
+
+    await this.categoriesRepository.delete(id);
+  }
+
+  async seedDefaultCategories(userId: string): Promise<void> {
     const defaultCategories: Array<{
       name: string;
       type: 'income' | 'expense';
@@ -52,11 +89,11 @@ export class CategoriesService {
 
     for (const categoryData of defaultCategories) {
       const existingCategory = await this.categoriesRepository.findOne({
-        where: { name: categoryData.name, type: categoryData.type }
+        where: { name: categoryData.name, type: categoryData.type, userId }
       });
-      
+
       if (!existingCategory) {
-        const category = this.categoriesRepository.create(categoryData);
+        const category = this.categoriesRepository.create({ ...categoryData, userId });
         await this.categoriesRepository.save(category);
       }
     }
