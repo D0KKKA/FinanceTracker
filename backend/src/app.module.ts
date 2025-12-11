@@ -25,7 +25,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     }),
     TypeOrmModule.forRoot({
       type: 'sqlite',
-      database: 'finance.db',
+      database: process.env.DATABASE_PATH || 'finance.db',
       entities: [Transaction, Category, Settings, User],
       synchronize: true,
     }),

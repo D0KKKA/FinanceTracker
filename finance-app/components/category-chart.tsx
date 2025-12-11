@@ -1,8 +1,10 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { DEFAULT_CATEGORIES, type Transaction, getCurrencySymbol } from "@/lib/storage"
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts"
+import { getChartColors, getChartColorPalette } from "@/lib/utils"
 
 interface CategoryChartProps {
   transactions: Transaction[]
@@ -10,15 +12,15 @@ interface CategoryChartProps {
   currency?: string
 }
 
-const COLORS = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))",
-]
-
 export function CategoryChart({ transactions, type, currency = "RUB" }: CategoryChartProps) {
+  const [colors, setColors] = useState<string[]>([])
+  const [palette, setPalette] = useState(getChartColorPalette())
+
+  useEffect(() => {
+    setColors(getChartColors())
+    setPalette(getChartColorPalette())
+  }, [])
+
   const categories = DEFAULT_CATEGORIES.filter((c) => c.type === type)
 
   const data = categories
@@ -60,14 +62,14 @@ export function CategoryChart({ transactions, type, currency = "RUB" }: Category
             dataKey="value"
           >
             {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
             ))}
           </Pie>
           <Tooltip
             formatter={(value: number) => `${value.toFixed(2)} ${getCurrencySymbol(currency)}`}
             contentStyle={{
-              backgroundColor: "hsl(var(--card))",
-              border: "1px solid hsl(var(--border))",
+              backgroundColor: palette.card,
+              border: `1px solid ${palette.border}`,
               borderRadius: "8px",
             }}
           />
@@ -78,7 +80,7 @@ export function CategoryChart({ transactions, type, currency = "RUB" }: Category
         {data.map((item, index) => (
           <div key={item.name} className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: colors[index % colors.length] }} />
               <span>{item.icon}</span>
               <span>{item.name}</span>
             </div>

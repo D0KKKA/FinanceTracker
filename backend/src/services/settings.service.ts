@@ -24,24 +24,30 @@ export class SettingsService {
     return await this.settingsRepository.findOne({ where: { id } });
   }
 
-  async getDefaultSettings(): Promise<Settings> {
-    let settings = await this.settingsRepository.findOne({ where: { id: 'default' } });
-    
+  async findByUserId(userId: string): Promise<Settings> {
+    let settings = await this.settingsRepository.findOne({ where: { userId } });
+
     if (!settings) {
-      settings = this.settingsRepository.create({
-        id: 'default',
+      const result = await this.settingsRepository.insert({
+        userId,
         currency: 'RUB',
         syncEnabled: false,
       });
-      await this.settingsRepository.save(settings);
+      settings = await this.settingsRepository.findOne({ where: { userId } });
     }
-    
+
     return settings;
   }
 
   async update(id: string, updateSettingsDto: UpdateSettingsDto): Promise<Settings> {
     await this.settingsRepository.update(id, updateSettingsDto);
     return await this.findOne(id);
+  }
+
+  async updateByUserId(userId: string, updateSettingsDto: UpdateSettingsDto): Promise<Settings> {
+    const settings = await this.findByUserId(userId);
+    await this.settingsRepository.update(settings.id, updateSettingsDto);
+    return await this.findOne(settings.id);
   }
 
   async remove(id: string): Promise<void> {

@@ -11,25 +11,31 @@ import Link from "next/link"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
+import { useSettings } from "@/hooks/use-settings"
 
 export default function AnalyticsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [period, setPeriod] = useState<"week" | "month" | "year" | "all">("month")
   const [mounted, setMounted] = useState(false)
-  const [currency, setCurrency] = useState("RUB")
-  const { api } = useAuth()
+  const { api, isAuthenticated } = useAuth()
+  const { settings } = useSettings()
   const { toast } = useToast()
+  const currency = settings?.currency ?? "RUB"
 
   useEffect(() => {
     setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!api || !isAuthenticated) return
     loadTransactions()
-  }, [api])
+  }, [api, isAuthenticated])
 
   const loadTransactions = async () => {
-    if (!api) {
+    if (!api || !isAuthenticated) {
       toast({
         title: "Ошибка",
-        description: "API не инициализирован",
+        description: "Требуется авторизация",
         variant: "destructive",
       })
       return
@@ -123,12 +129,12 @@ export default function AnalyticsPage() {
         </div>
 
         <div className="mb-8">
-          <TrendChart transactions={filteredTransactions} />
+          <TrendChart transactions={filteredTransactions} currency={currency} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <CategoryChart transactions={filteredTransactions} type="expense" />
-          <CategoryChart transactions={filteredTransactions} type="income" />
+          <CategoryChart transactions={filteredTransactions} type="expense" currency={currency} />
+          <CategoryChart transactions={filteredTransactions} type="income" currency={currency} />
         </div>
       </div>
     </div>

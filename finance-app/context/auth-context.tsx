@@ -3,6 +3,9 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react"
 import { BackendAPI, AuthResponse, RegisterRequest, LoginRequest } from "@/lib/api"
 
+const STORAGE_TOKEN_KEY = "finance_token"
+const STORAGE_USER_KEY = "finance_user"
+
 interface User {
   id: string
   email: string
@@ -28,26 +31,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-  const [api, setApi] = useState<BackendAPI | null>(null)
-
-  // Check authentication on mount
-  useEffect(() => {
-    checkAuth()
-  }, [])
+  const [api, setApi] = useState<BackendAPI>(() => new BackendAPI(API_BASE_URL))
 
   const checkAuth = useCallback(async () => {
     setLoading(true)
     try {
-      // Try to get the stored token from a cookie or session
-      // For now, we'll assume no token on initial load
-      const defaultApi = new BackendAPI(API_BASE_URL)
-      setApi(defaultApi)
+      const storedToken = typeof window !== "undefined" ? localStorage.getItem(STORAGE_TOKEN_KEY) : null
+
+      if (storedToken) {
+        const apiClient = new BackendAPI(API_BASE_URL, storedToken)
+        try {
+          const profile = await apiClient.getMe()
+          setToken(storedToken)
+          setUser({
+            id: profile.id,
+            email: profile.email,
+            name: profile.name,
+          })
+          setApi(apiClient)
+        } catch (error) {
+          console.error("Stored token invalid, clearing session:", error)
+          localStorage.removeItem(STORAGE_TOKEN_KEY)
+          localStorage.removeItem(STORAGE_USER_KEY)
+          setUser(null)
+          setToken(null)
+          setApi(new BackendAPI(API_BASE_URL))
+        }
+      } else {
+        const defaultApi = new BackendAPI(API_BASE_URL)
+        setApi(defaultApi)
+        setUser(null)
+        setToken(null)
+      }
     } catch (error) {
       console.error("Failed to check auth:", error)
     } finally {
       setLoading(false)
     }
   }, [])
+
+  // Check authentication on mount
+  useEffect(() => {
+    checkAuth()
+  }, [checkAuth])
 
   const login = useCallback(async (data: LoginRequest): Promise<AuthResponse> => {
     const apiClient = new BackendAPI(API_BASE_URL)
@@ -60,6 +86,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email: response.email,
       name: response.name,
     })
+    localStorage.setItem(STORAGE_TOKEN_KEY, response.token)
+    localStorage.setItem(
+      STORAGE_USER_KEY,
+      JSON.stringify({ id: response.id, email: response.email, name: response.name })
+    )
 
     const authenticatedApi = new BackendAPI(API_BASE_URL, response.token)
     setApi(authenticatedApi)
@@ -78,6 +109,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email: response.email,
       name: response.name,
     })
+    localStorage.setItem(STORAGE_TOKEN_KEY, response.token)
+    localStorage.setItem(
+      STORAGE_USER_KEY,
+      JSON.stringify({ id: response.id, email: response.email, name: response.name })
+    )
 
     const authenticatedApi = new BackendAPI(API_BASE_URL, response.token)
     setApi(authenticatedApi)
@@ -88,6 +124,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(() => {
     setUser(null)
     setToken(null)
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(STORAGE_TOKEN_KEY)
+      localStorage.removeItem(STORAGE_USER_KEY)
+    }
     setApi(new BackendAPI(API_BASE_URL))
   }, [])
 
@@ -99,7 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login,
     register,
     logout,
-    api: api || new BackendAPI(API_BASE_URL),
+    api,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -11,7 +11,7 @@ services:
       JWT_SECRET: your-secret-key-change-in-production
       DATABASE_PATH: /app/data/finance.db
     volumes:
-      - backend_data:/app/data
+      - ./backend/data:/app/data
     restart: unless-stopped
     networks:
       - finance_network
@@ -31,10 +31,6 @@ services:
     restart: unless-stopped
     networks:
       - finance_network
-
-volumes:
-  backend_data:
-    driver: local
 
 networks:
   finance_network:

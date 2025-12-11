@@ -1,8 +1,10 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { type Transaction, getCurrencySymbol } from "@/lib/storage"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
+import { getChartColorPalette } from "@/lib/utils"
 
 interface TrendChartProps {
   transactions: Transaction[]
@@ -10,6 +12,11 @@ interface TrendChartProps {
 }
 
 export function TrendChart({ transactions, currency = "RUB" }: TrendChartProps) {
+  const [palette, setPalette] = useState(getChartColorPalette())
+
+  useEffect(() => {
+    setPalette(getChartColorPalette())
+  }, [])
 
   // Group transactions by month
   const monthlyData = transactions.reduce(
@@ -57,18 +64,18 @@ export function TrendChart({ transactions, currency = "RUB" }: TrendChartProps) 
       <h3 className="text-lg font-semibold mb-4">Динамика доходов и расходов</h3>
       <ResponsiveContainer width="100%" height={320}>
         <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-          <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "12px" }} />
+          <CartesianGrid strokeDasharray="3 3" stroke={palette.border} />
+          <XAxis dataKey="month" stroke={palette.mutedForeground} style={{ fontSize: "12px" }} />
           <YAxis
-            stroke="hsl(var(--muted-foreground))"
+            stroke={palette.mutedForeground}
             style={{ fontSize: "12px" }}
             tickFormatter={(value) => `${value}`}
           />
           <Tooltip
             formatter={(value: number) => `${value.toFixed(2)} ${getCurrencySymbol(currency)}`}
             contentStyle={{
-              backgroundColor: "hsl(var(--card))",
-              border: "1px solid hsl(var(--border))",
+              backgroundColor: palette.card,
+              border: `1px solid ${palette.border}`,
               borderRadius: "8px",
             }}
           />
@@ -76,18 +83,18 @@ export function TrendChart({ transactions, currency = "RUB" }: TrendChartProps) 
           <Line
             type="monotone"
             dataKey="income"
-            stroke="hsl(var(--chart-2))"
+            stroke={palette.chart2}
             strokeWidth={3}
             name="Доходы"
-            dot={{ fill: "hsl(var(--chart-2))", r: 4 }}
+            dot={{ fill: palette.chart2, r: 4 }}
           />
           <Line
             type="monotone"
             dataKey="expense"
-            stroke="hsl(var(--chart-3))"
+            stroke={palette.chart3}
             strokeWidth={3}
             name="Расходы"
-            dot={{ fill: "hsl(var(--chart-3))", r: 4 }}
+            dot={{ fill: palette.chart3, r: 4 }}
           />
         </LineChart>
       </ResponsiveContainer>

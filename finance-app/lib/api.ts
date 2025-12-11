@@ -163,6 +163,20 @@ export class BackendAPI {
       method: "POST",
     })
   }
+
+  // Settings endpoints
+  async getSettings(): Promise<Settings> {
+    return this.request<Settings>("/api/settings/me", {
+      method: "GET",
+    })
+  }
+
+  async updateSettings(settings: Partial<Omit<Settings, "id" | "createdAt" | "updatedAt">>): Promise<Settings> {
+    return this.request<Settings>("/api/settings/me", {
+      method: "PATCH",
+      body: JSON.stringify(settings),
+    })
+  }
 }
 
 export function getAPI(baseUrl: string, token?: string): BackendAPI {

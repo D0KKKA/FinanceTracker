@@ -11,25 +11,31 @@ import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+import { useSettings } from "@/hooks/use-settings"
 
 export default function HomePage() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [mounted, setMounted] = useState(false)
-  const [currency, setCurrency] = useState("RUB")
-  const { logout, api, user } = useAuth()
+  const { logout, api, user, isAuthenticated } = useAuth()
+  const { settings } = useSettings()
   const router = useRouter()
   const { toast } = useToast()
+  const currency = settings?.currency ?? "RUB"
 
   useEffect(() => {
     setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!api || !isAuthenticated) return
     loadTransactions()
-  }, [api])
+  }, [api, isAuthenticated])
 
   const loadTransactions = async () => {
-    if (!api) {
+    if (!api || !isAuthenticated) {
       toast({
         title: "Ошибка",
-        description: "API не инициализирован",
+        description: "Требуется авторизация",
         variant: "destructive",
       })
       return
@@ -105,7 +111,7 @@ export default function HomePage() {
 
           <div className="lg:col-span-2">
             <h2 className="text-2xl font-semibold mb-4">История транзакций</h2>
-            <TransactionList transactions={transactions} onDelete={loadTransactions} />
+            <TransactionList transactions={transactions} onDelete={loadTransactions} currency={currency} />
           </div>
         </div>
       </div>
